@@ -1,0 +1,13 @@
+# Cloudflare Pages 静态站响应头 —— Pages 部署后自动生效（文件名固定为 _headers）。
+# 如新增第三方脚本/字体/分析源，请同步更新下方 CSP 的对应 directive。
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://challenges.cloudflare.com https://www.google-analytics.com https://*.workers.dev; frame-src https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'self'
+
+# 静态资源长期缓存（按需追加路径）
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
