@@ -972,14 +972,12 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
   });
   calc();
 
-  // ---- Lead form: POST to the backend (Cloudflare Worker) ----
+  // ---- Lead form: POST to the backend (Cloudflare Pages Function) ----
   // Turnstile is optional in dev — set the site key to render the widget in prod.
   var TURNSTILE_SITE_KEY = 'YOUR_TURNSTILE_SITE_KEY'; // TODO: replace with your Cloudflare Turnstile site key
-  // In prod this points to your Worker; during local preview it falls back to a same-origin /api/lead
-  // (works when you run `wrangler pages dev` with the Worker route mounted locally).
-  var LEAD_API_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? '/api/lead'
-    : 'https://YOUR_WORKER_NAME.YOUR_ACCOUNT.workers.dev/api/lead'; // TODO: your Cloudflare Worker URL
+  // 后端由 Pages Function 提供：functions/api/lead.js 映射为同域路由 /api/lead，
+  // 无需独立 Worker、无需 CORS。本地 `wrangler pages dev` 下同样生效。
+  var LEAD_API_URL = '/api/lead';
   var turnstileWidgetId = null;
   var form = document.getElementById('leadForm');
   var success = document.getElementById('formSuccess');
