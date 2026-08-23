@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev:site": "npx wrangler pages dev .",
-    "dev:worker": "npx wrangler dev",
-    "deploy:site": "npx wrangler pages deploy . --project-name=minova-titanv",
-    "deploy:worker": "npx wrangler deploy"
+    "deploy:site": "npx wrangler pages deploy . --project-name=minova-titanv"
   },
   "devDependencies": {
     "wrangler": "^3.114.0"
