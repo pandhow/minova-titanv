@@ -1,10 +1,10 @@
-name = "minova-titanv"
-compatibility_date = "2026-08-22"
 pages_build_output_dir = "."
 
-# 这是 Cloudflare Pages 项目配置（Pages Functions 随静态站一起部署）。
+# Cloudflare Pages 项目配置（Pages Functions 随静态站一起部署）。
 # 后端在 functions/api/lead.js，路由自动映射为 /api/lead，无需独立 Worker。
 #
 # 本地调试：  npx wrangler pages dev .
 # 部署：      npx wrangler pages deploy . --project-name=minova-titanv
 # （或在 CF Dashboard → Workers & Pages → Create application → Connect to Git 部署）
+#
+# 重要：Pages 项目 wrangler.toml 不要写 name= 或 main=，否则 CF 会把它当 Worker 项目处理。
