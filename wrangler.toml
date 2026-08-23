@@ -1,0 +1,9 @@
+name = "minova-titanv-lead"
+main = "worker.js"
+compatibility_date = "2026-08-22"
+
+# 这是「表单后端」Worker 的配置，只管 /api/lead 这一个端点。
+# 静态站由 Cloudflare Pages 托管（在 Dashboard 里用 Connect to Git 部署，不用此文件）。
+#
+# 本地调试 Worker：  npx wrangler dev
+# 部署 Worker：      npx wrangler deploy
