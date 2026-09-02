@@ -1067,7 +1067,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         success.scrollIntoView({behavior:'smooth', block:'center'});
       } else {
         var msg = (r.data && r.data.error === 'verification-failed')
-          ? 'Security verification failed. Please refresh and try again.'
+          ? 'Security verification failed [' + ((r.data.codes && r.data.codes.join(', ')) || 'unknown') + ']. Please refresh and try again.'
           : 'Something went wrong submitting your request. Please email sales@minova.com or try again.';
         setError(msg);
         if(turnstileWidgetId != null && window.turnstile){ try { window.turnstile.reset(turnstileWidgetId); } catch(err){} }
