@@ -991,15 +991,26 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
 
   function renderTurnstile(){
     var configured = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY.indexOf('YOUR_') !== 0;
-    if(!configured || !window.turnstile){
-      console.warn('[turnstile] site key not configured — skipping widget (dev/demo mode).');
-      return;
-    }
-    window.turnstile.ready(function(){
-      var el = document.getElementById('turnstile-container');
-      if(!el) return;
-      turnstileWidgetId = window.turnstile.render(el, { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', action: 'lead_submit' });
-    });
+    if(!configured) return;
+    // Turnstile api.js 是 async 加载的，必须轮询等待 window.turnstile 就绪，
+    // 否则脚本未到时直接跳过渲染 → 提交无 token → 后端 403 missing-input-response。
+    var tries = 0;
+    (function wait(){
+      tries++;
+      if(window.turnstile){
+        window.turnstile.ready(function(){
+          var el = document.getElementById('turnstile-container');
+          if(!el) return;
+          turnstileWidgetId = window.turnstile.render(el, { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', action: 'lead_submit' });
+        });
+      } else if(tries < 75){
+        setTimeout(wait, 200); // 最多等约 15 秒
+      } else {
+        var el = document.getElementById('turnstile-container');
+        if(el) el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check failed to load. Please disable ad-blockers/VPN and refresh the page.</p>';
+        console.warn('[turnstile] challenges.cloudflare.com did not load within 15s.');
+      }
+    })();
   }
   renderTurnstile();
 
