@@ -1001,7 +1001,23 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         window.turnstile.ready(function(){
           var el = document.getElementById('turnstile-container');
           if(!el) return;
-          turnstileWidgetId = window.turnstile.render(el, { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', action: 'lead_submit' });
+          try {
+            turnstileWidgetId = window.turnstile.render(el, {
+              sitekey: TURNSTILE_SITE_KEY,
+              theme: 'dark',
+              action: 'lead_submit',
+              'error-callback': function(code){
+                console.error('[turnstile] render error:', code);
+                el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check error: ' + code + ' — 通常为域名不在白名单或站点密钥有误，请刷新重试。</p>';
+              },
+              'expired-callback': function(){ try { window.turnstile.reset(turnstileWidgetId); } catch(e){} },
+              'timeout-callback': function(){ console.warn('[turnstile] challenge timeout'); }
+            });
+            console.log('[turnstile] widget rendered, id=', turnstileWidgetId);
+          } catch(err){
+            console.error('[turnstile] render threw:', err);
+            el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem">Security check init failed: ' + (err && err.message || err) + '</p>';
+          }
         });
       } else if(tries < 75){
         setTimeout(wait, 200); // 最多等约 15 秒
