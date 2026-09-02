@@ -1,5 +1,7 @@
 # Minova Titan V — 海外营销落地页（Cloudflare Pages + Pages Functions + 飞书 CRM）
 
+> 部署状态:2026-09-02 环境变量(Turnstile/飞书 CRM)已在 CF Dashboard 配置,本提交用于触发重新部署使变量生效。
+
 针对你的实际情况定制:**阿里云 DNS(不动 NS)+ Cloudflare Pages 静态站 + Pages Functions 表单后端 + 飞书多维表格 CRM**。
 
 - **静态站**:Cloudflare Pages 托管,通过 GitHub 仓库自动部署,享受全球 CDN 加速与自动 HTTPS。
