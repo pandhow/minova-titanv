@@ -58,16 +58,16 @@ function corsHeaders(env) {
 async function verifyTurnstile(token, ip, secret) {
   if (!secret) {
     console.warn('[lead] TURNSTILE_SECRET_KEY not set — skipping verification (dev/demo).');
-    return true;
+    return { ok: true, codes: [] };
   }
-  if (!token) return false;
+  if (!token) return { ok: false, codes: ['missing-input-response'] };
   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ secret, response: token, remoteip: ip || '' }),
   });
   const data = await res.json();
-  return !!data.success;
+  return { ok: !!data.success, codes: data['error-codes'] || [] };
 }
 
 async function getTenantToken(env) {
@@ -171,8 +171,8 @@ export async function onRequestPost(context) {
 
   const ip = request.headers.get('CF-Connecting-IP') || '';
   const token = String(body['cf-turnstile-response'] ?? '');
-  const ok = await verifyTurnstile(token, ip, env.TURNSTILE_SECRET_KEY);
-  if (!ok) return json({ ok: false, error: 'verification-failed' }, 403, cors);
+  const verdict = await verifyTurnstile(token, ip, env.TURNSTILE_SECRET_KEY);
+  if (!verdict.ok) return json({ ok: false, error: 'verification-failed', codes: verdict.codes }, 403, cors);
 
   // 落库 + 通知均「尽力而为」，飞书临时故障也不让访客看到失败
   let crm = 'none';
