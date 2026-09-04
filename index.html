@@ -1023,6 +1023,35 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
     try { return window.turnstile ? window.turnstile.getResponse(turnstileWidgetId) : ''; } catch(e){ return ''; }
   }
 
+  // 挑战失败/超时统一处置：自动重试 3 次（1.5s/3s/6s 递增间隔）→ 仍失败给手动重试按钮
+  // 背景：国内手机网络访问 challenges.cloudflare.com 子资源偶发不稳；国际访客不受影响（ECI 真实线索已验证）
+  var tsRetryTimer = null;
+  function tsHandleFailure(kind, code){
+    console.error('[turnstile] ' + kind + ':', code);
+    if(typeof gtag === 'function'){ gtag('event','turnstile_error',{ error_code: String(code) }); }
+    if(tsRetryTimer) return; // 去重：一次失败可能同时触发 timeout + error
+    var el = document.getElementById('turnstile-container');
+    if(!el) return;
+    if(tsRetries < 3){
+      tsRetries++;
+      el.innerHTML = '<p style="color:#9aa7bd;font-size:.86rem">Security check re-connecting… (' + tsRetries + '/3)</p>';
+      tsRetryTimer = setTimeout(function(){
+        tsRetryTimer = null;
+        try { window.turnstile.reset(turnstileWidgetId); }
+        catch(e){ try { window.turnstile.remove(turnstileWidgetId); } catch(e2){} turnstileWidgetId = null; renderTurnstile(); }
+      }, [1500,3000,6000][tsRetries-1] || 1500);
+      return;
+    }
+    el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check failed to load (code ' + code + '). This is usually a temporary network issue.</p><button type="button" id="tsRetryBtn" style="margin-top:10px;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e8eefb;font-weight:600;font-size:.9rem;cursor:pointer">Retry security check</button>';
+    var rb = document.getElementById('tsRetryBtn');
+    if(rb) rb.addEventListener('click', function(){
+      if(tsRetryTimer){ clearTimeout(tsRetryTimer); tsRetryTimer = null; }
+      tsRetries = 0;
+      try { window.turnstile.remove(turnstileWidgetId); } catch(e){}
+      turnstileWidgetId = null; el.innerHTML = ''; renderTurnstile();
+    });
+  }
+
   function renderTurnstile(){
     var configured = TURNSTILE_SITE_KEY && TURNSTILE_SITE_KEY.indexOf('YOUR_') !== 0;
     if(!configured) return;
@@ -1040,29 +1069,9 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
               sitekey: TURNSTILE_SITE_KEY,
               theme: 'dark',
               action: 'lead_submit',
-              'error-callback': function(code){
-                console.error('[turnstile] widget error:', code);
-                // GA4 观测：统计访客端验证失败率（Admin → Events 里看 turnstile_error）
-                if(typeof gtag === 'function'){ gtag('event','turnstile_error',{ error_code: String(code) }); }
-                if(tsRetries < 2){
-                  tsRetries++;
-                  el.innerHTML = '<p style="color:#9aa7bd;font-size:.86rem">Security check re-connecting… (' + tsRetries + '/2)</p>';
-                  setTimeout(function(){
-                    try { window.turnstile.reset(turnstileWidgetId); }
-                    catch(e){ try { window.turnstile.remove(turnstileWidgetId); } catch(e2){} turnstileWidgetId = null; renderTurnstile(); }
-                  }, 1500);
-                  return;
-                }
-                el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check failed to load (code ' + code + '). This is usually a temporary network issue.</p><button type="button" id="tsRetryBtn" style="margin-top:10px;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e8eefb;font-weight:600;font-size:.9rem;cursor:pointer">Retry security check</button>';
-                var rb = document.getElementById('tsRetryBtn');
-                if(rb) rb.addEventListener('click', function(){
-                  tsRetries = 0;
-                  try { window.turnstile.remove(turnstileWidgetId); } catch(e){}
-                  turnstileWidgetId = null; el.innerHTML = ''; renderTurnstile();
-                });
-              },
+              'error-callback': function(code){ tsHandleFailure('error', code); },
               'expired-callback': function(){ try { window.turnstile.reset(turnstileWidgetId); } catch(e){} },
-              'timeout-callback': function(){ console.warn('[turnstile] challenge timeout'); }
+              'timeout-callback': function(){ tsHandleFailure('timeout', 'timeout'); }
             });
             console.log('[turnstile] widget rendered, id=', turnstileWidgetId);
           } catch(err){
