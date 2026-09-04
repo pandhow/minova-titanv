@@ -1012,6 +1012,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
   // 无需独立 Worker、无需 CORS。本地 `wrangler pages dev` 下同样生效。
   var LEAD_API_URL = '/api/lead';
   var turnstileWidgetId = null;
+  var tsRetries = 0; // 挑战执行失败自动重试计数（弱网/CDN 抖动场景，如国内手机网络访问 challenges.cloudflare.com 不稳定）
   var form = document.getElementById('leadForm');
   var success = document.getElementById('formSuccess');
   var formError = document.getElementById('formError');
@@ -1040,8 +1041,25 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
               theme: 'dark',
               action: 'lead_submit',
               'error-callback': function(code){
-                console.error('[turnstile] render error:', code);
-                el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check error: ' + code + ' — 通常为域名不在白名单或站点密钥有误，请刷新重试。</p>';
+                console.error('[turnstile] widget error:', code);
+                // GA4 观测：统计访客端验证失败率（Admin → Events 里看 turnstile_error）
+                if(typeof gtag === 'function'){ gtag('event','turnstile_error',{ error_code: String(code) }); }
+                if(tsRetries < 2){
+                  tsRetries++;
+                  el.innerHTML = '<p style="color:#9aa7bd;font-size:.86rem">Security check re-connecting… (' + tsRetries + '/2)</p>';
+                  setTimeout(function(){
+                    try { window.turnstile.reset(turnstileWidgetId); }
+                    catch(e){ try { window.turnstile.remove(turnstileWidgetId); } catch(e2){} turnstileWidgetId = null; renderTurnstile(); }
+                  }, 1500);
+                  return;
+                }
+                el.innerHTML = '<p style="color:#fca5a5;font-size:.86rem;line-height:1.5">Security check failed to load (code ' + code + '). This is usually a temporary network issue.</p><button type="button" id="tsRetryBtn" style="margin-top:10px;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e8eefb;font-weight:600;font-size:.9rem;cursor:pointer">Retry security check</button>';
+                var rb = document.getElementById('tsRetryBtn');
+                if(rb) rb.addEventListener('click', function(){
+                  tsRetries = 0;
+                  try { window.turnstile.remove(turnstileWidgetId); } catch(e){}
+                  turnstileWidgetId = null; el.innerHTML = ''; renderTurnstile();
+                });
               },
               'expired-callback': function(){ try { window.turnstile.reset(turnstileWidgetId); } catch(e){} },
               'timeout-callback': function(){ console.warn('[turnstile] challenge timeout'); }
