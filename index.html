@@ -26,11 +26,9 @@
 <!-- Fonts (progressive enhancement; robust system fallbacks) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-
-<!-- Cloudflare Turnstile (anti-spam for the lead form) -->
-<!-- 注意：不得加 async/defer —— turnstile.ready() 与 async/defer 不兼容，会静默抛错导致组件永不渲染 -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+<!-- 非阻塞加载字体 CSS（media=print 技巧 + noscript 兜底）；600 字重未使用已裁剪 —— 消除渲染阻塞 -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" /></noscript>
 
 <!-- Structured data -->
 <script type="application/ld+json">
@@ -73,7 +71,7 @@
   --border-strong:rgba(255,255,255,.16);
   --text:#e8eefb;
   --muted:#9aa7bd;
-  --muted-2:#6f7d96;
+  --muted-2:#77849e;
   --cyan:#22d3ee;
   --blue:#3b82f6;
   --violet:#8b5cf6;
@@ -376,7 +374,7 @@ h3{font-size:1.18rem;font-weight:700;letter-spacing:-.01em}
 footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--bg-2)}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
 .footer-brand p{color:var(--muted);font-size:.9rem;margin-top:16px;max-width:300px}
-.footer-col h4{font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.footer-col h3{font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
 .footer-col a{display:block;color:var(--text);font-size:.9rem;margin-bottom:11px;opacity:.82;transition:opacity .16s}
 .footer-col a:hover{opacity:1;color:var(--cyan)}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:28px;color:var(--muted-2);font-size:.82rem}
@@ -876,7 +874,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         <p>Chip-level intelligent video compression and storage appliances for security, smart city, transit, finance, satellite and remote operations worldwide.</p>
       </div>
       <div class="footer-col">
-        <h4>Product</h4>
+        <h3>Product</h3>
         <a href="#technology">Technology</a>
         <a href="#specs">Specifications</a>
         <a href="#variants">Storage Appliance</a>
@@ -884,7 +882,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         <a href="#roi">ROI Calculator</a>
       </div>
       <div class="footer-col">
-        <h4>Solutions</h4>
+        <h3>Solutions</h3>
         <a href="#industries">Security &amp; Smart City</a>
         <a href="#industries">Rail &amp; Transit</a>
         <a href="#industries">Finance</a>
@@ -892,7 +890,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         <a href="#industries">Mining &amp; Energy</a>
       </div>
       <div class="footer-col">
-        <h4>Company</h4>
+        <h3>Company</h3>
         <a href="#contact">Contact Sales</a>
         <a href="#contact">Request a Demo</a>
         <a href="#faq">FAQ</a>
@@ -1116,5 +1114,9 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
   });
 })();
 </script>
+<!-- Cloudflare Turnstile (anti-spam for the lead form) -->
+<!-- 注意：不得加 async/defer —— turnstile.ready() 与 async/defer 不兼容，会静默抛错导致组件永不渲染 -->
+<!-- 放在 body 末尾：同步加载语义不变（规避 ready() 兼容问题），但不再阻塞首屏渲染；renderTurnstile 已有轮询等待 -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 </body>
 </html>
