@@ -384,6 +384,11 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
 .socials a:hover{border-color:var(--cyan);background:rgba(34,211,238,.08)}
 .socials svg{width:17px;height:17px;color:var(--muted)}
 
+/* 移动端深度优化：折叠按钮 + 粘性 CTA（桌面默认隐藏，全部逻辑只作用于 ≤640px） */
+.m-fold-btn{display:none;margin:18px auto 0;padding:12px 24px;border-radius:12px;border:1px solid var(--border-strong);background:var(--panel);color:var(--cyan);font-weight:600;font-size:.9rem;cursor:pointer}
+.m-fold-btn.open{border-color:var(--cyan);background:rgba(34,211,238,.08)}
+.m-cta-bar{display:none}
+
 /* Reveal animation */
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
@@ -407,6 +412,21 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
   .lead-form,.calc-result{padding:22px 16px}
   .specs-wrap{overflow-x:auto}
   .specs-table td:first-child{white-space:normal}
+  /* 移动端深度优化：次要内容折叠 + 粘性 CTA + iOS 输入防缩放 */
+  .m-fold-btn{display:block}
+  .lead-form input,.lead-form select,.lead-form textarea{font-size:16px}
+  .specs-table tbody tr:nth-child(n+6){display:none}
+  .specs-table.m-fold-open tbody tr:nth-child(n+6){display:table-row}
+  #industries .industries .ind:nth-child(n+4){display:none}
+  #industries .industries.m-fold-open .ind:nth-child(n+4){display:block}
+  #testimonials .quotes .quote:nth-child(n+2){display:none}
+  #testimonials .quotes.m-fold-open .quote:nth-child(n+2){display:block}
+  #comparison .compare-wrap{display:none}
+  #comparison .compare-wrap.m-fold-open{display:block}
+  .m-cta-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:80;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(10,14,26,.94);backdrop-filter:blur(14px);border-top:1px solid var(--border);opacity:0;pointer-events:none;transform:translateY(100%);transition:opacity .25s,transform .25s}
+  .m-cta-bar.show{opacity:1;pointer-events:auto;transform:none}
+  .m-cta-bar a{flex:1;text-align:center;padding:15px;border-radius:12px;font-size:1rem}
+  body{padding-bottom:74px}
   .nav-links,.nav-cta .btn-ghost{display:none}
   .menu-btn{display:grid}
   .nav-links.open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:flex-start;gap:0;background:rgba(10,14,26,.98);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:12px 28px 20px}
@@ -609,6 +629,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         </tbody>
       </table>
     </div>
+    <button type="button" class="m-fold-btn" data-fold=".specs-table" data-more="Show all 12 specifications" data-less="Show fewer"><span>Show all 12 specifications</span></button>
     <p class="specs-note reveal">Specifications are representative and vary by model and configuration. Contact our sales engineers for a configuration matched to your channel count and retention targets.</p>
   </div>
 </section>
@@ -664,6 +685,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
       <div class="ind reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L3 7v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V7l-9-5z"/><path d="M9 12l2 2 4-4"/></svg></div><div><h3>Mining &amp; Energy</h3><p>Rugged remote-site inspection and safety video over unreliable connectivity.</p></div></div>
       <div class="ind reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div><div><h3>Law Enforcement</h3><p>Body-worn, in-car and interview-room evidence — compressed without compromising admissibility.</p></div></div>
     </div>
+    <button type="button" class="m-fold-btn" data-fold="#industries .industries" data-more="Show all 6 industries" data-less="Show fewer"><span>Show all 6 industries</span></button>
   </div>
 </section>
 
@@ -693,6 +715,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         </tbody>
       </table>
     </div>
+    <button type="button" class="m-fold-btn" data-fold="#comparison .compare-wrap" data-more="Show the comparison table" data-less="Hide the comparison table"><span>Show the comparison table</span></button>
   </div>
 </section>
 
@@ -773,6 +796,7 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         <div class="who"><div class="avatar">AO</div><div><div class="name">A. Osei</div><div class="role">CTO, remote-ops energy group</div></div></div>
       </div>
     </div>
+    <button type="button" class="m-fold-btn" data-fold="#testimonials .quotes" data-more="More testimonials" data-less="Show fewer"><span>More testimonials</span></button>
   </div>
 </section>
 
@@ -1124,5 +1148,31 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
 <!-- 注意：不得加 async/defer —— turnstile.ready() 与 async/defer 不兼容，会静默抛错导致组件永不渲染 -->
 <!-- 放在 body 末尾：同步加载语义不变（规避 ready() 兼容问题），但不再阻塞首屏渲染；renderTurnstile 已有轮询等待 -->
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+<!-- 移动端深度优化：折叠交互 + 粘性 CTA（仅 ≤640px 生效，桌面零影响） -->
+<div class="m-cta-bar" id="mCtaBar"><a href="#contact" class="btn btn-primary">Get a Free Quote</a></div>
+<script>
+(function(){
+  document.querySelectorAll('.m-fold-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = document.querySelector(btn.getAttribute('data-fold'));
+      if(!t) return;
+      var open = t.classList.toggle('m-fold-open');
+      var span = btn.querySelector('span');
+      if(span) span.textContent = open ? (btn.getAttribute('data-less') || 'Show fewer') : (btn.getAttribute('data-more') || 'Show more');
+      btn.classList.toggle('open', open);
+      if(open){ t.querySelectorAll('.reveal:not(.in)').forEach(function(el){ el.classList.add('in'); }); }
+    });
+  });
+  var bar = document.getElementById('mCtaBar');
+  if(bar && 'IntersectionObserver' in window){
+    var hero = document.querySelector('.hero');
+    var contact = document.getElementById('contact');
+    var heroOut = false, contactIn = false;
+    var update = function(){ bar.classList.toggle('show', heroOut && !contactIn); };
+    if(hero){ new IntersectionObserver(function(es){ es.forEach(function(e){ heroOut = !e.isIntersecting; update(); }); }).observe(hero); }
+    if(contact){ new IntersectionObserver(function(es){ es.forEach(function(e){ contactIn = e.isIntersecting; update(); }); }, {threshold:.12}).observe(contact); }
+  }
+})();
+</script>
 </body>
 </html>
