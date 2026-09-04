@@ -1126,6 +1126,10 @@ footer{border-top:1px solid var(--border);padding:60px 0 40px;background:var(--b
         form.style.display = 'none';
         success.classList.add('show');
         success.scrollIntoView({behavior:'smooth', block:'center'});
+        // GA4 转化事件：服务端确认落库后才触发（generate_lead 为 GA4 推荐事件名，后台标记为关键事件即可计入转化）
+        if(typeof gtag === 'function'){
+          gtag('event','generate_lead',{ currency:'USD', value:1, form_location: window.location.pathname });
+        }
       } else {
         var msg = (r.data && r.data.error === 'verification-failed')
           ? 'Security verification failed [' + ((r.data.codes && r.data.codes.join(', ')) || 'unknown') + ']. Please refresh and try again.'
